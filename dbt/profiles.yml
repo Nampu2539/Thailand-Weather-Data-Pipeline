@@ -1,0 +1,13 @@
+weather_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      port: 5432
+      user: weather
+      password: weather
+      dbname: weather_db
+      schema: staging
+      threads: 4
+      keepalives_idle: 0

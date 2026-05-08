@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: weather_db
+    database: weather_db
+    schema: mart
+    tables:
+      - name: daily_summary
+        description: "Daily aggregated weather summary by province"
+        columns:
+          - name: province_code
+            tests: [not_null]
+          - name: data_date
+            tests: [not_null]
+          - name: temp_avg
+            tests:
+              - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 5
+                  max_value: 45
+
+  - name: weather_staging
+    database: weather_db
+    schema: staging
+    tables:
+      - name: weather_hourly
+        description: "Hourly weather records by province"

@@ -1,0 +1,100 @@
+{
+  "title": "Thailand Weather Dashboard",
+  "uid": "thailand-weather-v1",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "1h",
+  "time": { "from": "now-7d", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "อุณหภูมิเฉลี่ยรายวัน — ทุกจังหวัด",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 0 },
+      "datasource": "WeatherDB",
+      "targets": [{
+        "rawSql": "SELECT data_date AS time, AVG(temp_avg) AS \"Thailand Avg\", MAX(temp_max) AS \"Max\" FROM mart.daily_summary WHERE $__timeFilter(data_date::timestamp) GROUP BY data_date ORDER BY data_date",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "10 จังหวัดร้อนที่สุดวันนี้",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "datasource": "WeatherDB",
+      "targets": [{
+        "rawSql": "SELECT province_name AS metric, temp_avg AS \"Temp (°C)\" FROM mart.daily_summary WHERE data_date = CURRENT_DATE - 1 ORDER BY temp_avg DESC LIMIT 10",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "steps": [
+              { "value": 0, "color": "blue" },
+              { "value": 28, "color": "yellow" },
+              { "value": 33, "color": "orange" },
+              { "value": 36, "color": "red" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "ปริมาณฝนสะสมรายวัน (mm)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 8 },
+      "datasource": "WeatherDB",
+      "targets": [{
+        "rawSql": "SELECT data_date AS time, SUM(total_precipitation) AS \"Total Rain (mm)\", AVG(total_precipitation) AS \"Avg Rain\" FROM mart.daily_summary WHERE $__timeFilter(data_date::timestamp) GROUP BY data_date ORDER BY data_date",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": { "unit": "mm", "color": { "fixedColor": "#1F60C4", "mode": "fixed" } }
+      }
+    },
+    {
+      "id": 4,
+      "title": "อุณหภูมิเฉลี่ยแต่ละภาค",
+      "type": "stat",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 8 },
+      "datasource": "WeatherDB",
+      "targets": [{
+        "rawSql": "SELECT region AS metric, ROUND(AVG(temp_avg)::numeric,1) AS \"Avg Temp\" FROM mart.daily_summary WHERE data_date = CURRENT_DATE - 1 GROUP BY region ORDER BY region",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "steps": [
+              { "value": 0, "color": "blue" },
+              { "value": 28, "color": "green" },
+              { "value": 32, "color": "orange" },
+              { "value": 35, "color": "red" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Pipeline Run Log",
+      "type": "table",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 15 },
+      "datasource": "WeatherDB",
+      "targets": [{
+        "rawSql": "SELECT data_date, step, provinces_total, provinces_ok, records_inserted, status, ROUND(duration_sec,1) AS duration_sec, created_at FROM mart.pipeline_run_log ORDER BY created_at DESC LIMIT 20",
+        "format": "table"
+      }]
+    }
+  ]
+}
